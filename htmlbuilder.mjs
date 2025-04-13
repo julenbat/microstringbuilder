@@ -7,6 +7,12 @@ import * as Langfile from './lang.js'
 
 
 const fileName = process.argv[2];
+
+if(process.argc <= 3  || !fileName){
+	console.error("filename to parse must be given as cmd argument")
+	process.exit(-1)
+}
+
 const htmlFile = fs.readFileSync("./" + fileName , "UTF-8")
 let lang = ""
 
@@ -14,9 +20,10 @@ let lang = ""
 for (const _lang in Langfile.default.languages ){
 	lang = _lang
 	const newFileName = get_lang_filename()
-	fs.unlinkSync(newFileName)
+	if(fs.existsSync(newFileName)) fs.unlinkSync(newFileName)
 
-	const newFile = fs.openSync( newFileName, "ax")
+
+	const newFile = fs.createWriteStream( newFileName, {flags: "ax", encoding: "utf-8"})
 	const htmlLines = htmlFile.split("\n")
 
 	htmlLines.forEach((line,n) => {
@@ -31,10 +38,11 @@ for (const _lang in Langfile.default.languages ){
 		}
 
  
-		 fs.writeSync(newFile, line + '\n'); 
-
+		 newFile.write(line + '\n', "utf-8"); 
 
 	})
+
+	newFile.close()
 }
 
 function get_lang_filename()
